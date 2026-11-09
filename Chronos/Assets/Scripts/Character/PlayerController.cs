@@ -56,6 +56,7 @@ public class TurnLogIterator<T>
     public void ResetToStart() => currentIndex = 0;
     public void ResetToEnd() => currentIndex = log.Count - 1;
     public int GetCurrentIndex() => currentIndex;
+    public int Count => log.Count; // remake HUD: read-only, used to show phantom's remaining turns
     public T GetNext() => log[currentIndex + 1];
 
     public void SetCurrent(T item)

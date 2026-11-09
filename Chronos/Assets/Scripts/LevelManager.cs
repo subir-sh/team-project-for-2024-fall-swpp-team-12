@@ -22,6 +22,20 @@ public class LevelManager : MonoBehaviour
     // then the tile the player is standing on is (1, -0.2, 1)
     private string baseSceneName;
 
+    // --- Remake: single-level mode -------------------------------------------------
+    // Opt-in only. When off (default), the original campaign flow is unchanged.
+    // When on, exactly one level is played, PlayerPrefs progress is never read/written,
+    // and OnLevelCleared fires instead of loading the next level.
+    [Header("Remake single-level mode")]
+    public bool singleLevelMode = false;
+    public string singleLevelBaseScene = "";   // base scene name (empty = keep LevelBaseScene)
+    public int singleLevelIndex = 3;           // original campaign index (keeps monologue/BGM ids)
+    public string singleLevelScene = "";       // scene to load at that index (empty = original)
+    public static int ForcedSingleLevelIndex = -1;  // set by the verification harness
+    public static string ForcedSingleLevelScene = null;
+    public static System.Action OnLevelCleared;
+    private bool levelCleared = false;
+
     private void Awake()
     {
         if (levelManager == null) { levelManager = this; }
@@ -60,6 +74,18 @@ public class LevelManager : MonoBehaviour
                 "Epilogue"
             };
         }
+
+        if (ForcedSingleLevelIndex >= 0)
+        {
+            singleLevelMode = true;
+            singleLevelIndex = ForcedSingleLevelIndex;
+            if (!string.IsNullOrEmpty(ForcedSingleLevelScene)) singleLevelScene = ForcedSingleLevelScene;
+        }
+        if (singleLevelMode)
+        {
+            if (!string.IsNullOrEmpty(singleLevelScene)) levelScenes[singleLevelIndex] = singleLevelScene;
+            if (!string.IsNullOrEmpty(singleLevelBaseScene)) baseSceneName = singleLevelBaseScene;
+        }
     }
 
     private void Start()
@@ -76,7 +102,8 @@ public class LevelManager : MonoBehaviour
             }
         }
 
-        if (PlayerPrefs.HasKey("SavedLevelIndex")) currentLevelIndex = PlayerPrefs.GetInt("SavedLevelIndex");
+        if (singleLevelMode) currentLevelIndex = singleLevelIndex;
+        else if (PlayerPrefs.HasKey("SavedLevelIndex")) currentLevelIndex = PlayerPrefs.GetInt("SavedLevelIndex");
         else currentLevelIndex = 0;
         //currentLevelIndex = 0; //need for test.
         //PlayerPrefs.SetInt("SavedLevelIndex", 0); //also for test and save initialize.
@@ -117,6 +144,15 @@ public class LevelManager : MonoBehaviour
 
     private IEnumerator FinishLevel()
     {
+        if (singleLevelMode)
+        {
+            if (levelCleared) yield break;
+            levelCleared = true;
+            SoundManager.soundManager.PlaySound2D("ui_levelClear", 0.25f);
+            OnLevelCleared?.Invoke();
+            yield break;
+        }
+
         Destroy(GameObject.Find("CameraOffsetAnchor"));
 
         if (currentLevelIndex > 0) previousLevelIndex = currentLevelIndex - 1;
@@ -361,6 +397,7 @@ public class LevelManager : MonoBehaviour
 
     private void ResetLevel()
     {
+        levelCleared = false;
         if (player.willDropDeath)
         {
             player.StopFallCharacter();
