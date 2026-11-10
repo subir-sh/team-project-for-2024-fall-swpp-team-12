@@ -36,6 +36,20 @@ public class LevelManager : MonoBehaviour
     public static System.Action OnLevelCleared;
     private bool levelCleared = false;
 
+    // --- Remake: full campaign on the remade scenes ---------------------------------
+    // Opt-in only (set on the RemakeGame base scene). Plays the same campaign order with every
+    // level swapped for its remade copy (L-001-1 -> R-001-1, Prologue -> R-Prologue) and keeps
+    // its progress under its own PlayerPrefs key so the original save is never touched.
+    [Header("Remake campaign")]
+    public bool remakeCampaign = false;
+    public string remakeBaseScene = "RemakeGame";
+    public static int ForcedCampaignStart = -1;     // verification harness: start here, never save
+    const string RemakeSaveKey = "RemakeSavedLevelIndex";
+    string SaveKey => remakeCampaign ? RemakeSaveKey : "SavedLevelIndex";
+    bool CanSave => ForcedCampaignStart < 0;
+    public Transform CurrentGoal => currentGoal;
+    bool advancing;
+
     private void Awake()
     {
         if (levelManager == null) { levelManager = this; }
@@ -81,6 +95,12 @@ public class LevelManager : MonoBehaviour
             singleLevelIndex = ForcedSingleLevelIndex;
             if (!string.IsNullOrEmpty(ForcedSingleLevelScene)) singleLevelScene = ForcedSingleLevelScene;
         }
+        if (remakeCampaign && !singleLevelMode)
+        {
+            for (int i = 0; i < levelScenes.Length; i++)
+                levelScenes[i] = levelScenes[i].StartsWith("L-") ? "R-" + levelScenes[i].Substring(2) : "R-" + levelScenes[i];
+            baseSceneName = remakeBaseScene;
+        }
         if (singleLevelMode)
         {
             if (!string.IsNullOrEmpty(singleLevelScene)) levelScenes[singleLevelIndex] = singleLevelScene;
@@ -103,7 +123,8 @@ public class LevelManager : MonoBehaviour
         }
 
         if (singleLevelMode) currentLevelIndex = singleLevelIndex;
-        else if (PlayerPrefs.HasKey("SavedLevelIndex")) currentLevelIndex = PlayerPrefs.GetInt("SavedLevelIndex");
+        else if (ForcedCampaignStart >= 0) currentLevelIndex = ForcedCampaignStart;
+        else if (PlayerPrefs.HasKey(SaveKey)) currentLevelIndex = PlayerPrefs.GetInt(SaveKey);
         else currentLevelIndex = 0;
         //currentLevelIndex = 0; //need for test.
         //PlayerPrefs.SetInt("SavedLevelIndex", 0); //also for test and save initialize.
@@ -153,6 +174,11 @@ public class LevelManager : MonoBehaviour
             yield break;
         }
 
+        if (remakeCampaign)
+        {   // a second end-of-turn on the goal before the next level has loaded must not skip a level
+            if (advancing) { Debug.Log($"[Level] finish ignored, already advancing from {currentLevelIndex} {System.Environment.StackTrace}"); yield break; }
+            advancing = true;
+        }
         Destroy(GameObject.Find("CameraOffsetAnchor"));
 
         if (currentLevelIndex > 0) previousLevelIndex = currentLevelIndex - 1;
@@ -160,8 +186,7 @@ public class LevelManager : MonoBehaviour
         if (currentLevelIndex == 19)
         {
             SoundManager.soundManager.PlaySound2D("ui_levelClear", 0.25f);
-            PlayerPrefs.SetInt("SavedLevelIndex", 0);
-            PlayerPrefs.Save();
+            if (CanSave) { PlayerPrefs.SetInt(SaveKey, 0); PlayerPrefs.Save(); }
             if (ScenarioManager.scenarioManager != null)
             {
                 ScenarioManager.scenarioManager.StartMonologue(currentLevelIndex);
@@ -175,8 +200,7 @@ public class LevelManager : MonoBehaviour
         else
         {
             SoundManager.soundManager.PlaySound2D("ui_levelClear", 0.25f);
-            PlayerPrefs.SetInt("SavedLevelIndex", currentLevelIndex);
-            PlayerPrefs.Save();
+            if (CanSave) { PlayerPrefs.SetInt(SaveKey, currentLevelIndex); PlayerPrefs.Save(); }
             LoadLevel(currentLevelIndex);
 
             // Wait until the next level is fully loaded
@@ -199,6 +223,7 @@ public class LevelManager : MonoBehaviour
             // automatically finds currentStart and currentGoal in every level,
             // then calculate offset to match previous goal = current start
             // and move all objects(including player) accordingly to that offset
+            advancing = false;
             GameObject nextGoal = GameObject.FindWithTag("GoalTile");
             GameObject nextStart = GameObject.FindWithTag("StartTile");
             if (nextGoal != null && nextStart != null)

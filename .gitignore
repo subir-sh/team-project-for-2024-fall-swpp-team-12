@@ -3,3 +3,6 @@
 
 # harness output
 captures/
+
+# player builds
+Build/

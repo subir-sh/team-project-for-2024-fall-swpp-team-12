@@ -32,10 +32,10 @@ Material:
     - _Cull: 0
     - _DstBlend: 1
     - _Pulse: 0
-    - _PulseSpeed: 1.2
+    - _PulseSpeed: 0.8
     - _ScrollV: 0
     - _SrcBlend: 5
     m_Colors:
-    - _Color: {r: 1, g: 0.85, b: 0.6, a: 0.75}
+    - _Color: {r: 0.9, g: 0.85, b: 1, a: 0.5}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -45,8 +45,9 @@ public class RemakeHarness : MonoBehaviour
         scenario = Arg("-harnessScenario") ?? "solve";
         levelScene = Arg("-harnessLevel") ?? "L-001-3";
         Directory.CreateDirectory(outDir);
-        LevelManager.ForcedSingleLevelIndex = 3;
-        LevelManager.ForcedSingleLevelScene = levelScene;
+        int index = int.TryParse(Arg("-harnessIndex"), out var ix) ? ix : 3;
+        if (HasArg("-harnessCampaign")) LevelManager.ForcedCampaignStart = index;   // full campaign from here, never saves
+        else { LevelManager.ForcedSingleLevelIndex = index; LevelManager.ForcedSingleLevelScene = levelScene; }
         Time.captureFramerate = 30; // deterministic 1/30 s steps, independent of batch-mode speed
         var go = new GameObject("~RemakeHarness");
         DontDestroyOnLoad(go);
@@ -55,9 +56,9 @@ public class RemakeHarness : MonoBehaviour
 
     void Update()
     {
-        if (Time.realtimeSinceStartup > 600f)
+        if (Time.realtimeSinceStartup > 1500f)
         {
-            Debug.LogError("[Harness] WATCHDOG: run exceeded 600 s wall clock");
+            Debug.LogError("[Harness] WATCHDOG: run exceeded 1500 s wall clock");
             File.WriteAllText(Path.Combine(outDir, $"report_{scenario}.txt"), report + "\nWATCHDOG TIMEOUT\n");
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.Exit(3);
@@ -84,8 +85,8 @@ public class RemakeHarness : MonoBehaviour
         {
             "solve" => Solve(),
             "shots" => Shots(),
-            "lineup" => Lineup(),
             "final" => Solve(true),
+            "script" => Script(Arg("-harnessScript")),
             _ => Solve(),
         };
         yield return run;
@@ -182,58 +183,116 @@ public class RemakeHarness : MonoBehaviour
         yield return Capture("06_clear");
     }
 
-    // Rabbit design review: every variant in the real game camera (hop film + puzzle moment)
-    // plus a close studio shot of player/phantom side by side.
-    IEnumerator Lineup()
+    // Plays an input script exactly like a player would (moves via InputManager.OnMovementControl,
+    // rewinds as SPACE, Q x k, SPACE). Lines:
+    //   m <wasdr..>    moves            rw <k> [cap]   rewind k turns (optional capture mid-rewind)
+    //   cap <name>     capture          film <name>    film the next move frame by frame
+    //   swap <A|B|C>   rabbit design    undo           one-turn undo (Backspace)
+    //   closeup <name> <x> <z>          studio         close studio shots of every design
+    IEnumerator Script(string path)
     {
-        string[] vs = { "A", "B", "C" };
-        foreach (var v in vs)
+        Check(path != null && File.Exists(path), $"script file {path}");
+        if (path == null || !File.Exists(path)) yield break;
+        int rewinds = 0; string film = null;
+        foreach (var raw in File.ReadAllLines(path))
         {
-            SwapRabbits(v);
-            InputManager.inputManager.OnReset?.Invoke();
-            yield return Wait(1.0f);
-            yield return Turn("w", $"hop_{v}");
+            var line = raw.Trim();
+            if (line.Length == 0 || line.StartsWith("#")) continue;
+            var parts = line.Split(' ');
+            switch (parts[0])
+            {
+                case "m":
+                    foreach (var c in parts[1]) { yield return Turn(c.ToString(), film); film = null; }
+                    break;
+                case "rw":
+                {
+                    int k = int.Parse(parts[1]);
+                    rewinds++;
+                    Log($"REWIND {k}");
+                    InputManager.inputManager.OnTimeRewindModeToggle?.Invoke();
+                    yield return Wait(0.2f);
+                    for (int i = 0; i < k; i++)
+                    {
+                        InputManager.inputManager.OnTimeRewindControl?.Invoke("q");
+                        yield return Wait(0.06f);
+                        if (parts.Length > 2 && i == k / 2) { yield return Wait(0.4f); yield return Capture(parts[2]); }
+                    }
+                    if (TurnManager.turnManager.rewindTurnCount != k) Check(false, $"rewind {rewinds}: wanted {k} got {TurnManager.turnManager.rewindTurnCount}");
+                    InputManager.inputManager.OnTimeRewindModeToggle?.Invoke();
+                    yield return Wait(0.3f);
+                    break;
+                }
+                case "cap": yield return Wait(0.3f); yield return Capture(parts[1], 1920, 1080, true); LogVps(parts[1]); break;
+                case "film": film = parts[1]; break;
+                case "probe": LogVp(parts[1], new Vector3(float.Parse(parts[2]), float.Parse(parts[3]) - 0.2f, float.Parse(parts[4]))); break;
+                case "swap": SwapRabbits(parts[1]); yield return Wait(0.3f); break;
+                case "palette": RemakePalette.Apply(parts[1]); Log($"palette -> {parts[1]}"); yield return Wait(0.3f); break;
+                case "wait": yield return Wait(float.Parse(parts[1])); break;
+                case "near":   // stand one tile short of the goal (the Event script waits for this)
+                {
+                    var g = LevelManager.levelManager.CurrentGoal;
+                    PlayerController.playerController.transform.position = g.position + new Vector3(0, 1.2f, -2f);
+                    Log($"player placed before goal {Fmt(g.position)}");
+                    yield return Wait(float.Parse(parts.Length > 1 ? parts[1] : "8"));
+                    break;
+                }
+                case "skip":   // campaign: put the player on the goal, let LevelManager finish the level and load the next one
+                {
+                    DismissMonologue();
+                    var lm = LevelManager.levelManager; var g = lm.CurrentGoal;
+                    PlayerController.playerController.transform.position = new Vector3(g.position.x, g.position.y + 1.2f, g.position.z);
+                    lm.CheckAndCompleteLevel();
+                    float t0 = Time.time;
+                    while (!SceneManager.GetSceneByName(parts[1]).isLoaded && Time.time - t0 < 20f) yield return null;
+                    Check(SceneManager.GetSceneByName(parts[1]).isLoaded, $"campaign advanced to {parts[1]}");
+                    yield return Wait(3.0f);
+                    DismissMonologue();
+                    Log($"style now {StageStyle.Current}, level index {lm.GetCurrentLevelIndex()}");
+                    yield return Wait(0.5f);
+                    break;
+                }
+                case "undo": InputManager.inputManager.OnUndo?.Invoke(); yield return Wait(0.5f); break;
+                case "closeup": yield return CloseUp(parts[1], new Vector3(float.Parse(parts[2]), 0, float.Parse(parts[3]))); break;
+                case "studio": yield return Studio(parts.Skip(1).ToArray()); break;
+            }
+            if (cleared) break;
         }
+        yield return Wait(1.2f);
+        Check(cleared, $"level cleared by script ({turn} inputs, {rewinds} rewinds)");
+        var ph = PhantomController.phantomController;
+        yield return Capture("script_end", 1920, 1080, true);
+    }
 
-        // reach the key puzzle moment once: player on the bridge, phantom holding the plate
-        InputManager.inputManager.OnReset?.Invoke();
-        yield return Wait(1.0f);
-        foreach (var c in Record) yield return Turn(c);
-        InputManager.inputManager.OnTimeRewindModeToggle?.Invoke();
-        yield return Wait(0.3f);
-        for (int i = 0; i < RewindSteps; i++) { InputManager.inputManager.OnTimeRewindControl?.Invoke("q"); yield return Wait(0.2f); }
-        InputManager.inputManager.OnTimeRewindModeToggle?.Invoke();
-        yield return Wait(0.3f);
-        for (int i = 0; i < 6; i++) yield return Turn(Cross[i]);
-        var plate = FindObjectsByType<Button>().First();
-        Check(plate.isPressed && PhantomController.phantomController.isPhantomExisting, "lineup: phantom holds the plate");
-        foreach (var v in vs)
-        {
-            SwapRabbits(v);
-            yield return Wait(0.6f);
-            yield return Capture($"lineup_{v}", 1920, 1080, true);
-            LogVp($"lineup_{v}_player", PlayerController.playerController.transform.position);
-            LogVp($"lineup_{v}_phantom", PhantomController.phantomController.transform.position);
-        }
+    void LogVps(string name)
+    {
+        LogVp($"{name}_player", PlayerController.playerController.transform.position);
+        var ph = PhantomController.phantomController;
+        if (ph && ph.isPhantomExisting) LogVp($"{name}_phantom", ph.transform.position);
+    }
 
-        // studio: player + phantom side by side, facing a close camera
-        var studioCam = new GameObject("~StudioCam").AddComponent<Camera>();
-        studioCam.fieldOfView = 26; studioCam.clearFlags = CameraClearFlags.Skybox;
-        studioCam.enabled = false;
+    // close studio shots: player + phantom of each design side by side on a kit tile
+    IEnumerator Studio(string[] designs)
+    {
+        var cam = new GameObject("~StudioCam").AddComponent<Camera>();
+        cam.fieldOfView = 24; cam.clearFlags = CameraClearFlags.Skybox; cam.enabled = false;
         Vector3 o = new(400, 0, 400);
 #if UNITY_EDITOR
-        var tile = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Remake/Prefabs/Tile_2.prefab");
-        Instantiate(tile, o + new Vector3(-1, 0, 0), Quaternion.identity);
-        Instantiate(tile, o + new Vector3(1, 0, 0), Quaternion.identity);
-#endif
-        foreach (var v in vs)
+        var tileMesh = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Remake/Models/kit.fbx").OfType<Mesh>().First(m => m.name == "Tile");
+        var tileMat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Remake/Materials/Tile.mat");
+        foreach (var x in new[] { -1f, 1f })
         {
-            var a = Instantiate(LoadRabbit(v, false), o + new Vector3(-0.95f, 0, 0), Quaternion.Euler(0, 200, 0));
-            var b = Instantiate(LoadRabbit(v, true), o + new Vector3(1.05f, 0, 0), Quaternion.Euler(0, 160, 0));
-            studioCam.transform.position = o + new Vector3(1.6f, 2.1f, -5.6f);
-            studioCam.transform.LookAt(o + new Vector3(0.05f, 0.62f, 0));
+            var t = new GameObject("~tile"); t.transform.position = o + new Vector3(x, 0, 0);
+            t.AddComponent<MeshFilter>().sharedMesh = tileMesh; t.AddComponent<MeshRenderer>().sharedMaterial = tileMat;
+        }
+#endif
+        foreach (var v in designs.Length > 0 ? designs : new[] { "G", "H", "I" })
+        {
+            var a = Instantiate(LoadRabbit(v, false), o + new Vector3(-1f, 0, 0), Quaternion.Euler(0, 200, 0));
+            var b = Instantiate(LoadRabbit(v, true), o + new Vector3(1f, 0, 0), Quaternion.Euler(0, 160, 0));
+            cam.transform.position = o + new Vector3(1.4f, 2.4f, -6.6f);
+            cam.transform.LookAt(o + new Vector3(0, 0.72f, 0));
             yield return null; yield return null;
-            CaptureNow(Path.Combine(outDir, $"studio_{v}.png"), 1600, 900, false, studioCam);
+            CaptureNow(Path.Combine(outDir, $"studio_{v}.png"), 1600, 900, false, cam);
             Destroy(a); Destroy(b);
             yield return null;
         }
@@ -258,7 +317,7 @@ public class RemakeHarness : MonoBehaviour
             inst.name = "RabbitVisual";
             inst.transform.localPosition = RabbitRig.MountOffset;
             inst.transform.localRotation = Quaternion.identity;
-            inst.transform.localScale = Vector3.one * RabbitRig.MountScale;
+            inst.transform.localScale = Vector3.one * 0.5f; // character roots are scaled x2
         }
         var pc = PlayerController.playerController;
         // keep the death-blink renderer list valid (old visual is destroyed at end of frame)
@@ -269,8 +328,11 @@ public class RemakeHarness : MonoBehaviour
 
     void LogVp(string name, Vector3 world)
     {
-        var vp = Camera.main.WorldToViewportPoint(world + Vector3.up * 0.2f);
-        Log($"VP {name} {vp.x:F4} {vp.y:F4}");
+        var cam = Camera.main;
+        cam.aspect = 16f / 9f;                       // captures are 16:9; the batch-mode screen is not
+        var vp = cam.WorldToViewportPoint(world + Vector3.up * 0.2f);
+        cam.ResetAspect();
+        Log($"VP16 {name} {vp.x:F4} {vp.y:F4}");
     }
 
     IEnumerator Shots()

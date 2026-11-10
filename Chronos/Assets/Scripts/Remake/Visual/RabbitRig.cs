@@ -61,7 +61,8 @@ public class RabbitRig : MonoBehaviour
         if (earL) earL.localRotation = earL0 * Quaternion.Euler(-earDrag - idle, 0f, -twitch * 0.3f);
         if (earR) earR.localRotation = earR0 * Quaternion.Euler(-earDrag + idle * 0.6f - twitch, 0f, 0f);
 
-        if (spinner) spinner.Rotate(spinAxis, (air ? 420f : 35f) * dt, Space.Self);
+        // spinAxis is expressed in the rig root's space (imported pivots may carry axis-conversion rotations)
+        if (spinner) spinner.Rotate(transform.TransformDirection(spinAxis), (air ? 420f : 35f) * dt, Space.World);
         if (groundRing) groundRing.Rotate(Vector3.up, ringSpin * dt, Space.Self);
 
         blinkT -= dt;

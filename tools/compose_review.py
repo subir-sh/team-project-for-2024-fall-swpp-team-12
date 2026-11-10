@@ -15,10 +15,23 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 FONT = ROOT / "Chronos/Assets/TextMesh Pro/Fonts/NotoSansKR-Medium.ttf"
 NAMES = {
-    "A": ("A · 황동 태엽 토끼", "원작 설정(기계 토끼 '모델 크로노스')에 가장 가까움. 등의 태엽 키가 이동할 때 돈다."),
-    "B": ("B · 도자기 시계 토끼", "광택 도자기 + 금 이음새, 가슴의 시계 바늘이 돈다. 가장 귀엽고 고급스러움."),
-    "C": ("C · 등불 정찰 토끼", "어두운 몸체에 주황 등불·바이저. 실루엣과 대비가 가장 강함, 등의 모래시계."),
+    "A": ("A  모카", "큰 둥근 박스 머리에 바이저 얼굴, 빛나는 알약 눈. 게임 거리에서 가장 또렷함. 등에 작은 태엽 키."),
+    "B": ("B  톡", "가늘고 꼿꼿한 시계토끼. 외눈 안경과 가슴의 회중시계. 가장 우아하지만 작은 실루엣."),
+    "C": ("C  모찌", "둥글고 납작한 떡 토끼, 등에 작은 모래시계. 가장 귀엽고 부드러움."),
+    "D": ("D  세이블", "흑연빛 안드로이드 산토끼. 옆으로 난 호박색 눈, 황동 목깃과 등뼈 장식. 밝은 타일 위에서 대비가 가장 강함."),
+    "E": ("E  아이보리", "웅크린 자연스러운 토끼 자세의 도자기 오토마톤. 금빛 관절 링과 등의 태엽 키. 가장 단정하고 차분함."),
+    "G": ("G  그래파이트", "흑연빛 몸, 호박색 측면 눈, 등 위로 선 큰 황동 태엽 키. 밝은 바닥에서 대비가 가장 강함."),
+    "H": ("H  아이보리", "상아빛 몸, 짙은 눈, 같은 황동 태엽 키. 가장 차분하고 단정함. 어두운 바닥과 잘 어울림."),
+    "I": ("I  녹청", "산화된 구리 같은 녹청빛 몸, 금빛 눈과 태엽. 시계 장치 느낌이 가장 강함."),
+    "M": ("M  빈티지 태엽 장난감", "큰 둥근 양철 머리, 큰 렌즈 눈과 볼 칠, 짧은 다리, 리벳과 이음 띠, 등의 태엽 키."),
+    "N": ("N  봉제 + 기계", "부드러운 펠트 몸에 황동 관절 캡, 귀 경첩과 귀 끝 금속, 단추 눈, 등의 태엽 키."),
+    "O": ("O  둥근 토끼 + 부품", "매끈한 토끼 실루엣에 이음 띠, 리벳, 옆면 렌즈 눈, 큰 태엽 키."),
+    "J": ("J  양철 적색", "칠이 바랜 붉은 양철 몸, 크림색 판, 황동 장식. 고전 태엽 장난감 그대로의 기계 토끼."),
+    "K": ("K  건메탈", "회청색 금속 몸, 검은 판, 황동 장식. 가장 기계적이고 무게감 있음."),
+    "L": ("L  구리와 녹청", "구리 몸에 녹청 패널. 오래된 시설에서 녹슬며 버텨 온 느낌."),
+    "F": ("F  드리프트", "흑연빛 몸에 길게 늘어진 산호색 스카프의 시간 여행자. 게임 거리에서도 실루엣과 이야기가 읽힘."),
 }
+LETTERS = "ABC"
 BG = (22, 20, 34)
 INK = (240, 236, 226)
 MUTED = (160, 160, 180)
@@ -30,10 +43,14 @@ def font(size):
 
 def read_vp(cap: Path):
     vp = {}
-    for line in (cap / "report_lineup.txt").read_text(encoding="utf-8").splitlines():
-        m = re.match(r"VP (\S+) ([\d.]+) ([\d.]+)", line)
+    rep = next(cap.glob("report_*.txt"))
+    for line in rep.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"VP(16)? (\S+) ([\d.]+) ([\d.]+)", line)
         if m:
-            vp[m.group(1)] = (float(m.group(2)), float(m.group(3)))
+            x, y = float(m.group(3)), float(m.group(4))
+            if not m.group(1):  # legacy: logged with the batch-mode 4:3 screen aspect, captures are 16:9
+                x = 0.5 + (x - 0.5) * 0.75
+            vp[m.group(2)] = (x, y)
     return vp
 
 
@@ -49,16 +66,16 @@ def board(cap: Path, out: Path, vp):
     W = 2560
     sheet = Image.new("RGB", (W, 150 + 3 * (row_h + pad)), BG)
     d = ImageDraw.Draw(sheet)
-    d.text((pad, 30), "Chronos 리메이크 — 주인공 토끼 시안 (실제 게임 카메라 비교)", font=font(44), fill=INK)
-    d.text((pad, 92), "가운데: 실제 퍼즐 장면 (본체=다리 위, 분신=발판 위, 같은 카메라/조명/HUD)   오른쪽: 같은 프레임의 게임 카메라 픽셀을 2배 확대",
+    d.text((pad, 30), "Chronos 리메이크 주인공 토끼 시안", font=font(44), fill=INK)
+    d.text((pad, 92), "모델 크로노스: 불완전한 태엽 기계 토끼 인형. 왼쪽 근접, 가운데 실제 게임 화면, 오른쪽 같은 프레임 2배. 분신은 과거에서 온 아지랑이",
            font=font(22), fill=MUTED)
-    for i, v in enumerate("ABC"):
+    for i, v in enumerate(LETTERS):
         y = 150 + i * (row_h + pad)
         studio = Image.open(cap / f"studio_{v}.png").convert("RGB").resize((800, 450), Image.LANCZOS)
         game_full = Image.open(cap / f"lineup_{v}.png").convert("RGB")
         game = game_full.resize((800, 450), Image.LANCZOS)
-        p = crop_at(game_full, *vp[f"lineup_{v}_player"], 260, 260, dy=-40).resize((420, 420), Image.LANCZOS)
-        q = crop_at(game_full, *vp[f"lineup_{v}_phantom"], 260, 260, dy=-40).resize((420, 420), Image.LANCZOS)
+        p = crop_at(game_full, *vp[f"lineup_{v}_player"], 230, 230, dy=-30).resize((420, 420), Image.LANCZOS)
+        q = crop_at(game_full, *vp[f"lineup_{v}_phantom"], 230, 230, dy=-30).resize((420, 420), Image.LANCZOS)
         sheet.paste(studio, (pad, y + 44))
         sheet.paste(game, (pad + 820, y + 44))
         sheet.paste(p, (pad + 1640, y + 44))
@@ -73,7 +90,7 @@ def board(cap: Path, out: Path, vp):
 
 def hop_gifs(cap: Path, out: Path, vp):
     seqs = {}
-    for v in "ABC":
+    for v in LETTERS:
         frames = sorted(cap.glob(f"hop_{v}_*.png"))
         sx, sy = vp[f"hop_{v}_start"]
         ex, ey = vp[f"hop_{v}_end"]
@@ -92,7 +109,7 @@ def hop_gifs(cap: Path, out: Path, vp):
     for k in range(n):
         frame = Image.new("RGB", (3 * 520 + 4 * 16, 400), BG)
         d = ImageDraw.Draw(frame)
-        for i, v in enumerate("ABC"):
+        for i, v in enumerate(LETTERS):
             tile = seqs[v][k].resize((520, 356), Image.LANCZOS)
             frame.paste(tile, (16 + i * 536, 36))
             d.text((16 + i * 536, 4), NAMES[v][0], font=font(22), fill=INK)
@@ -123,9 +140,10 @@ def final_hop(cap: Path, out: Path):
 if __name__ == "__main__":
     cap, out = Path(sys.argv[1]), Path(sys.argv[2])
     out.mkdir(parents=True, exist_ok=True)
-    if (cap / "report_final.txt").exists():
+    if (cap / "report_final.txt").exists() and not (cap / "lineup_A.png").exists():
         final_hop(cap, out)
     else:
+        LETTERS = "".join(sorted(p.stem[-1] for p in cap.glob("lineup_?.png")))
         vp = read_vp(cap)
         board(cap, out, vp)
         hop_gifs(cap, out, vp)
