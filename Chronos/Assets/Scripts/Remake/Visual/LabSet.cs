@@ -50,13 +50,14 @@ public static class LabSet
         var cam = Camera.main ? Camera.main : Object.FindFirstObjectByType<Camera>();
         Vector3 f = cam ? cam.transform.forward : new Vector3(1, -1, 1); f.y = 0; f.Normalize();
         float top = b.max.y, floorY = b.min.y - 0.4f;
-        var rnd = new System.Random(4242);
+        int seed = 4242; if (focus.IsValid()) foreach (char ch in focus.name) seed = seed * 31 + ch;   // each stage gets its own layout
+        var rnd = new System.Random(seed);
         float R(float a, float c) => a + (float)rnd.NextDouble() * (c - a);
 
         var setM = Toon(p.set, p.setTex, 0.25f, null, p);
         var floorM = Toon(p.set * 0.75f, "dt_labfloor", 0.25f, null, p);
         var darkM = Toon(Color.Lerp(p.dark, p.set, 0.5f), "dt_iron", 0.5f, null, p);
-        var stripM = Toon(p.strip, null, 1, p.strip * 1.3f);
+        var stripM = Toon(p.strip, null, 1, p.strip * 0.8f);
         var screenM = Toon(p.strip * 0.5f, null, 1, p.strip * 0.55f);
         var warnM = Toon(p.lever, null, 1, p.lever * 1.6f);
         var pipeM = Toon(p.clock ? Color.Lerp(p.clockCol, p.dark, 0.35f) : Color.Lerp(p.dark, p.set, 0.7f), "dt_iron", 0.5f, null, p);
@@ -80,9 +81,8 @@ public static class LabSet
             for (float t = 4; t < len - 4; t += 7.5f)
             {
                 var at = origin + along * t;
-                if (rnd.NextDouble() > 0.25)   // some strips are dead
-                    Box(root, PrimitiveType.Cube, at + inward * 0.15f + Vector3.up * (top + R(1.5f, 3.5f) - floorY), new Vector3(0.22f, R(3.5f, 6f), 0.22f), stripM, face, false)
-                        .transform.position += Vector3.zero;
+                if (rnd.NextDouble() > 0.35)   // ceiling-height light fixtures run along the wall; some are dead
+                    Box(root, PrimitiveType.Cube, at + inward * 0.2f + Vector3.up * (top + 7.5f - floorY), new Vector3(R(2.5f, 4.5f), 0.16f, 0.16f), stripM, face, false);
                 // machine at the floor
                 float w = R(2.2f, 4.2f), h = R(2.5f, 6.5f), d = R(1.4f, 2.6f);
                 var mpos = at + along * 3.2f + inward * (d / 2 + 0.6f) + Vector3.up * h / 2;
@@ -199,10 +199,10 @@ public static class LabSet
             Vector3 axis = sun ? -sun.transform.forward : Vector3.up;
             var shaftM = new Material(Shader.Find("Remake/Unlit")) { name = "LabShaft" };
             shaftM.SetTexture("_MainTex", RemakePalette.LoadTex("shaft"));
-            shaftM.SetColor("_Color", new Color(p.sunColor.r, p.sunColor.g, p.sunColor.b, 0.05f));
+            shaftM.SetColor("_Color", new Color(p.sunColor.r, p.sunColor.g, p.sunColor.b, 0.03f));
             shaftM.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha); shaftM.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
             shaftM.renderQueue = 3050;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 3; i++)
             {
                 var foot = new Vector3(R(b.min.x + 2, b.max.x - 2), top, R(b.min.z + 2, b.max.z - 2));
                 float L = 40, w = R(2.5f, 5f);

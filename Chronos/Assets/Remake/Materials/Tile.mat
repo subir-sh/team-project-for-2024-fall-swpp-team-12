@@ -44,7 +44,7 @@ Material:
     - _SinkFade: 0
     - _Spec: 0.05
     m_Colors:
-    - _Color: {r: 0.2, g: 0.3137255, b: 0.3529412, a: 1}
+    - _Color: {r: 0.35686275, g: 0.5019608, b: 0.5411765, a: 1}
     - _Emission: {r: 0, g: 0, b: 0, a: 1}
     - _OverlayColor: {r: 0, g: 0, b: 0, a: 0}
     - _RimColor: {r: 1, g: 1, b: 1, a: 0.15}

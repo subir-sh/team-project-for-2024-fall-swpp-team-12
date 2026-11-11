@@ -62,22 +62,22 @@ public static class RemakePalette
         // LA Timelie: dark teal room, one cold key light, glass-teal partitions, only devices + warning lamps carry colour
         ["LA"] = new P { crate = H("#8FA3A6"), trim = H("#22313A"), mark = H("#1A262C"), core = H("#7FE6FF"), beam = H("#FF4A3A"), panel = H("#4A616A"),
                          name = "Cold dead lab", lab = true, clock = true,
-                         tile = H("#33505A"), pillar = H("#16232A"), wall = H("#78B4BE"), dark = H("#0E161A"),
+                         tile = H("#5B808A"), pillar = H("#22363E"), wall = H("#8CC4CC"), dark = H("#0E161A"),
                          floorTex = "dt_labfloor", wallTex = "dt_labwall", pillarTex = "dt_iron",
                          plate = H("#FFB347"), lever = H("#FF5A4E"), start = H("#CFE3E8"), goal = H("#FFF2C4"), shade = H("#34405E"),
                          haze = H("#FFD08A"), marker = H("#FFFFFF"),
                          skyTop = H("#0A1115"), skyHorizon = H("#0A1115"), skyBottom = H("#05090B"), fog = H("#0C161B"), fogDensity = 0.016f,
-                         sun = 0.5f, shadow = 0.85f, sunColor = H("#BFE3F0"), ambSky = H("#3E5E6A"), ambEq = H("#2A4049"), ambGround = H("#0E181C"),
-                         set = H("#1C2B32"), setTex = "dt_labwall", strip = H("#7FE6FF"), key = H("#E6F7FF"), keyI = 2.6f, clockCol = H("#3B5A64") },
+                         sun = 0.8f, shadow = 0.8f, sunColor = H("#BFE3F0"), ambSky = H("#5E8492"), ambEq = H("#3E5A64"), ambGround = H("#14222A"),
+                         set = H("#1C2B32"), setTex = "dt_labwall", strip = H("#7FE6FF"), key = H("#E6F7FF"), keyI = 3.0f, clockCol = H("#3B5A64") },
         // LB Portal 2 overgrown: grey concrete panels taken by moss, warm sun through a broken roof, dust
         ["LB"] = new P { crate = H("#C4BCA6"), trim = H("#43443D"), mark = H("#E0782E"), core = H("#8FE07A"), beam = H("#FF5533"), panel = H("#8C8C82"),
                          name = "Overgrown lab", lab = true, vines = true, shafts = true,
                          tile = H("#7A7A72"), pillar = H("#45453F"), wall = H("#A2A298"), dark = H("#2A2A26"),
                          floorTex = "dt_concrete", wallTex = "dt_labwall", pillarTex = "dt_concrete",
-                         overlayTex = "ov_moss", overlayOn = "Tile,Pillar,Wall,Set", overlayColor = new Color(0.33f, 0.45f, 0.2f, 0.85f), overlayUp = 0.85f,
+                         overlayTex = "ov_moss", overlayOn = "Tile,Pillar,Wall,Set", overlayColor = new Color(0.33f, 0.45f, 0.2f, 0.6f), overlayUp = 0.85f,
                          plate = H("#3FA9F5"), lever = H("#FF8A2A"), start = H("#E4E2D8"), goal = H("#FFF4D0"), shade = H("#56606E"),
                          haze = H("#FFC46B"), marker = H("#FFFFFF"),
-                         skyTop = H("#3A4238"), skyHorizon = H("#3A4238"), skyBottom = H("#1A1E18"), fog = H("#323A30"), fogDensity = 0.016f,
+                         skyTop = H("#3A4238"), skyHorizon = H("#3A4238"), skyBottom = H("#1A1E18"), fog = H("#2C3329"), fogDensity = 0.009f,
                          sun = 1.35f, shadow = 0.85f, sunColor = H("#FFE0A8"), ambSky = H("#8A9682"), ambEq = H("#5C6456"), ambGround = H("#2A2E26"),
                          set = H("#5A5C54"), setTex = "dt_labwall", strip = H("#7E8076"), key = H("#FFD99A"), keyI = 1.6f },
         // LC Machinarium: rusted iron, patina and faded checker tiles, warm bulbs, a brass clock
@@ -94,13 +94,13 @@ public static class RemakePalette
         // LD A + C: the dark cold room of A, with C's rusted brass machinery and clock
         ["LD"] = new P { crate = H("#6F7E7B"), trim = H("#262220"), mark = H("#B08A4A"), core = H("#FFC878"), beam = H("#FF4A3A"), panel = H("#3E4C4C"),
                          name = "Dark lab, rusted brass", lab = true, clock = true,
-                         tile = H("#34494C"), pillar = H("#1C2628"), wall = H("#A07A44"), dark = H("#101819"),
+                         tile = H("#5A7476"), pillar = H("#283A3C"), wall = H("#B08A50"), dark = H("#101819"),
                          floorTex = "dt_labfloor", wallTex = "dt_brass", pillarTex = "dt_iron",
                          overlayTex = "ov_rust", overlayOn = "Wall,Pillar,Set", overlayColor = new Color(0.4f, 0.2f, 0.1f, 0.55f), overlayUp = 0f,
                          plate = H("#FFB347"), lever = H("#FF5A4E"), start = H("#D6E4E2"), goal = H("#FFF2C4"), shade = H("#34405E"),
                          haze = H("#FFD08A"), marker = H("#FFFFFF"),
                          skyTop = H("#0B1213"), skyHorizon = H("#0B1213"), skyBottom = H("#050909"), fog = H("#0E1718"), fogDensity = 0.016f,
-                         sun = 0.55f, shadow = 0.85f, sunColor = H("#CFE6EE"), ambSky = H("#405C62"), ambEq = H("#2C4044"), ambGround = H("#0E1819"),
+                         sun = 0.8f, shadow = 0.8f, sunColor = H("#CFE6EE"), ambSky = H("#5C7E84"), ambEq = H("#3C5458"), ambGround = H("#142022"),
                          set = H("#22302F"), setTex = "dt_labwall", strip = H("#FFC878"), key = H("#E6F7FF"), keyI = 2.4f, clockCol = H("#B08A4A") },
     };
 
@@ -122,8 +122,8 @@ public static class RemakePalette
             case "LeverHandle": baseCol = p.lever; emission = p.lever * 0.12f; return true;
             case "Start": baseCol = p.start; emission = p.start * 0.15f; return true;
             case "Goal": baseCol = p.goal; emission = p.goal * 0.8f; return true;
-            case "GhostPlate": baseCol = new Color(p.plate.r, p.plate.g, p.plate.b, 0.6f); return true;
-            case "GhostLever": baseCol = new Color(p.lever.r, p.lever.g, p.lever.b, 0.6f); return true;
+            case "GhostPlate": baseCol = new Color(p.plate.r, p.plate.g, p.plate.b, 0.42f); return true;
+            case "GhostLever": baseCol = new Color(p.lever.r, p.lever.g, p.lever.b, 0.42f); return true;
             case "Barrier": baseCol = p.plate; return true;
             case "LeverArrow": baseCol = new Color(p.lever.r, p.lever.g, p.lever.b, 0.95f); return true;
             case "Afterimage": baseCol = new Color(p.haze.r, p.haze.g, p.haze.b, 0.42f); return true;

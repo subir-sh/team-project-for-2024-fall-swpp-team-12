@@ -519,7 +519,7 @@ public static class RemakeBuilder
         var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
         var lm = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<LevelManager>(true)).First();
         lm.singleLevelMode = false; lm.singleLevelBaseScene = ""; lm.singleLevelScene = "";
-        lm.remakeCampaign = true; lm.remakeBaseScene = "RemakeGame";
+        lm.remakeCampaign = true; lm.remakeBaseScene = "RemakeGame"; lm.chaseDistance = 1.9f;
         EditorUtility.SetDirty(lm);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
@@ -621,6 +621,14 @@ public static class RemakeBuilder
             var bc = t.GetComponent<BoxCollider>(); if (!bc) continue;
             foreach (var r in t.GetComponentsInChildren<MeshRenderer>(true)) r.enabled = false;
             var b = bc.bounds;
+            if (t.name.StartsWith("Pillar"))
+            {   // standing columns (L-004-1) stay columns: a capped lab pillar instead of a low wall bar
+                var cap = new Vector3(Mathf.Round(b.center.x), b.max.y, Mathf.Round(b.center.z));
+                float fw = Mathf.Clamp(Mathf.Min(b.size.x, b.size.z) / 1.9f, 0.4f, 1f);
+                Attach(Piece("Visual", null, cap, Quaternion.identity, new Vector3(fw, 1, fw), ("Tile", "Wall"), ("Pillar", "Pillar")), t);
+                fit.Add(cap);
+                continue;
+            }
             bool alongX = b.size.x >= b.size.z;
             float len = alongX ? b.size.x : b.size.z;
             var centre = new Vector3(b.center.x, 0f, b.center.z);
@@ -743,6 +751,8 @@ public static class RemakeBuilder
         foreach (var t in all.Where(t => t.name.StartsWith("gear"))) foreach (var r in t.GetComponentsInChildren<MeshRenderer>(true)) r.enabled = false;
 
         var anchor = all.First(t => t.name == "CameraOffsetAnchor");
+        // the prologue is a tall tower; frame its upper part (where the phantom and the plates are) instead of the whole drop
+        if (sceneName == "R-Prologue") fit = fit.Where(q => q.y >= 6f).ToList();
         FitCamera(anchor, fit, 40f, 16f / 9f, 56f, 315f);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);

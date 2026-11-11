@@ -49,6 +49,7 @@ public class LevelManager : MonoBehaviour
     bool CanSave => ForcedCampaignStart < 0;
     public Transform CurrentGoal => currentGoal;
     bool advancing;
+    public float chaseDistance = 1f;   // Event scene follow camera; the remake pulls back to keep the lab walls out of the face
 
     private void Awake()
     {
@@ -486,10 +487,19 @@ public class LevelManager : MonoBehaviour
             if (sceneToUnload.isLoaded) yield return SceneManager.UnloadSceneAsync(sceneToUnload);
             previousLevelIndex = -1; // Reset previousLevelIndex after unloading
         }
+        if (remakeCampaign)
+        {   // the level just finished stays loaded until the next transition; drop it so only the current level remains
+            for (int i = 0; i < levelScenes.Length; i++)
+            {
+                if (i == currentLevelIndex) continue;
+                Scene s = SceneManager.GetSceneByName(levelScenes[i]);
+                if (s.isLoaded) yield return SceneManager.UnloadSceneAsync(s);
+            }
+        }
     }
     private void LetCameraChasePlayer()
     {
-        Vector3 targetPosition = player.transform.position + new Vector3(4.0f, 4.0f, 0.0f);
+        Vector3 targetPosition = player.transform.position + new Vector3(4.0f, 4.0f, 0.0f) * chaseDistance;
         Quaternion targetRotation = Quaternion.Euler(45, -45, 0);
         Vector3 vec = Vector3.zero;
         if (Vector3.Distance(mainCamera.transform.position, targetPosition) > 0.1f ||
