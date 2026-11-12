@@ -59,11 +59,10 @@
 
 ### 빌드된 게임
 
-```bash
-Build/ChronosRemake/ChronosRemake.exe
-```
+- Windows: [릴리스 페이지](https://github.com/subir-sh/team-project-for-2024-fall-swpp-team-12/releases/tag/remake-v1.0)에서 `ChronosRemake-Windows.zip`을 받아 `ChronosRemake.exe`를 실행합니다.
+- 웹: 같은 릴리스의 `ChronosRemake-WebGL.zip`이 브라우저용 빌드입니다.
 
-빌드는 저장소에 포함하지 않습니다. 아래 명령으로 만들 수 있습니다. 진행 상황은 원작과 다른 키에 저장되므로 원작 세이브를 건드리지 않습니다.
+빌드 파일은 저장소 기록에 넣지 않고 릴리스에 올립니다. 아래 명령으로 직접 만들 수도 있습니다. 진행 상황은 원작과 다른 키에 저장되므로 원작 세이브를 건드리지 않습니다.
 
 ### 에디터에서
 
@@ -82,8 +81,9 @@ blender -b --factory-startup --python tools/blender/build_props.py -- <출력 �
 # 2) 리메이크 씬 19개, 머티리얼, 텍스처
 Unity.exe -batchmode -quit -projectPath Chronos -executeMethod RemakeBuilder.BuildAll
 
-# 3) Windows 실행 파일
+# 3) Windows 실행 파일, 웹 빌드
 Unity.exe -batchmode -quit -projectPath Chronos -executeMethod RemakeBuilder.BuildPlayer
+Unity.exe -batchmode -quit -projectPath Chronos -buildTarget WebGL -executeMethod RemakeBuilder.BuildWebGL
 ```
 
 | 경로 | 내용 |
@@ -126,16 +126,26 @@ powershell tools/run_harness.ps1 -Scene Assets/Remake/Scenes/RemakeGame.unity -L
 | 3-1 | 클리어 | 49 | 1 |
 | 3-2 | 클리어 | 118 | 1 |
 | 3-3 | 클리어 | 66 | 1 |
-| 3-4 | 아직 못 풂 | | |
+| 3-4 | 클리어 | 70 | 2 |
 | 이벤트 | 클리어 | 32 | 0 |
 | 4-1 | 클리어 | 204 | 6 |
 | 4-2 | 클리어 | 293 | 10 |
-| 4-3 | 아직 못 풂 | | |
+| 4-3 | 클리어 | 185 | 4 |
 | 에필로그 | 연출 진행 확인 | | |
 
-3-4는 반쪽 상자 하나가 두 역할을 동시에 해야 하는 것으로 보입니다. 위층으로 올라가는 발판, 그리고 레이저를 끄는 발판(B0)입니다. 발판 B0에 캐릭터가 서면 아래쪽 레이저에 맞고, 계단 두 개는 높이가 1.5라 상자 위에서도 오를 수 없습니다. 원작 팀의 풀이 영상과 대조가 필요합니다.
+모든 스테이지를 끝까지 풀 수 있습니다. 가장 어려운 두 스테이지의 핵심은 아래와 같습니다.
 
-4-3은 발판 20개, 움직이는 블록 14개, 레이저 8개로 이루어진 마지막 스테이지입니다. 혼자서는 아래쪽 구역만 다닐 수 있고, 7번째 줄은 레이저로 막혀 있어 (5,7) 발판을 누가 지켜야 위로 올라갈 수 있다는 것까지 확인했습니다.
+**3-4.** 얇은 상자 하나가 위층으로 오르는 디딤돌과 레이저를 끄는 발판 역할을 모두 해야 합니다. 디딤돌로 쓴 뒤 레버를 당기면 지하가 열리고, 구덩이에서 계단 밑 숨은 통로로 들어가 큰 상자를 밀면 얇은 상자가 그 위에 실린 채 아래층으로 돌아옵니다. 이 과정을 분신에게 맡기고 본체는 계단 위에서 기다렸다가 위쪽 발판을 밟습니다.
+
+| 분신이 계단 밑에서 큰 상자를 미는 장면 | 얇은 상자가 발판에 올라가 레이저가 꺼진 장면 |
+|---|---|
+| ![](docs/images/highlights/3-4_phantom_pushes_crate.jpg) | ![](docs/images/highlights/3-4_crate_on_plate.jpg) |
+
+**4-3.** 시작 구역은 5번째와 7번째 줄을 오가며 쓸고 지나가는 레이저와, 3번째에서 9번째 줄까지 훑는 레이저에 갇혀 있습니다. 분신이 오른쪽 발판을 지키는 동안 본체가 레버를 당겨 양쪽에 블록 방패를 세우고, 그 사이로 중앙 홀에 올라갑니다. 중앙에서는 한 칸 낮은 구덩이로 움직이는 레이저를 피해 상자를 왼쪽 끝 발판에 올리고, 마지막 발판 미로는 분신 둘을 차례로 겹쳐 써야 레버에 닿습니다.
+
+| 분신이 지키는 레이저 방패 | 구덩이에 숨어 레이저 피하기 | 분신 둘이 지키는 발판 미로 |
+|---|---|---|
+| ![](docs/images/highlights/4-3_phantom_shield.jpg) | ![](docs/images/highlights/4-3_pits.jpg) | ![](docs/images/highlights/4-3_plate_maze.jpg) |
 
 ## 원작 팀
 

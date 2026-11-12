@@ -1,0 +1,23 @@
+# record = the phantom: wait at the start, then pull lever L0 (both crates appear) on turn 6
+m wrrrra
+rw 6
+# go round to the east side of the thin crate before it appears, push it west and onto the big crate in the pit
+m wdwwdr
+m a
+m saw
+# climb onto it (the thin crate shields the row laser), wait for the moving wall to cover the upper laser
+m w
+m rrrrw
+# along the stairs to the hidden lever: row laser off, basement opens
+m ddd
+# record = the phantom: back down, under the stairs, push the big crate into the basement with the thin crate riding,
+# then push the thin crate onto the right plate (upper laser off)
+m ras
+m wasdssaawddd
+rw 15
+# wait on the stairs for the phantom, then over the upper plate and down the stair it raises to the goal
+m rrrrrrrrrrrrrrr
+m aaaa
+m sa
+m aaaa
+m wwwww

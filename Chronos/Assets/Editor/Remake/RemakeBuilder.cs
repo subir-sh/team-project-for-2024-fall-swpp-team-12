@@ -84,6 +84,25 @@ public static class RemakeBuilder
         if (report.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded) EditorApplication.Exit(1);
     }
 
+    // Unity.exe -batchmode -quit -projectPath <p> -executeMethod RemakeBuilder.BuildWebGL  ->  <repo>/Build/ChronosRemakeWeb/ (itch.io upload)
+    public static void BuildWebGL()
+    {
+        var scenes = new List<string> { $"{R}/Scenes/RemakeGame.unity" };
+        scenes.AddRange(RemakeArtConfig.StageLevels.Select(l => $"{R}/Scenes/{RemakeArtConfig.SceneName(l)}.unity"));
+        string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../Build/ChronosRemakeWeb"));
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+        PlayerSettings.WebGL.decompressionFallback = true;   // works on hosts that do not send Content-Encoding
+        PlayerSettings.WebGL.dataCaching = true;
+        PlayerSettings.stripEngineCode = false;              // scene colliders were stripped on WebGL ("class 'CapsuleCollider' doesn't exist")
+        PlayerSettings.defaultWebScreenWidth = 1280; PlayerSettings.defaultWebScreenHeight = 720;
+        var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+        {
+            scenes = scenes.ToArray(), locationPathName = dir, target = BuildTarget.WebGL, options = BuildOptions.None
+        });
+        Debug.Log($"[Builder] webgl {report.summary.result} {dir} size={report.summary.totalSize / (1024 * 1024)}MB errors={report.summary.totalErrors}");
+        if (report.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded) EditorApplication.Exit(1);
+    }
+
     static string Arg(string n) { var a = Environment.GetCommandLineArgs(); for (int i = 0; i < a.Length - 1; i++) if (a[i] == n) return a[i + 1]; return null; }
 
     // ===================================================================== models

@@ -1,0 +1,49 @@
+# The lower room is cut off by two lasers that sweep between rows 5 and 7 and a third that sweeps rows 3 to 9.
+# record = the phantom: wait on the bottom plate, then step on the right plate (its block shields row 5 from the east)
+# and pull the lever beside it (its block shields row 5 from the west)
+m dddwrrrrrr
+m wwas
+rw 14
+# record = the phantom: the same walk, but stay on the right plate as the east shield
+m dddwrrrrrr
+m ww
+m rrrrrrrrr
+rw 21
+# pull the row-5 lever again while the phantom holds the plate, step on the row-7 plate, pull the row-9 lever,
+# and slip up between the sweeps into the middle hall
+m dddwrrrrrr
+m wwas
+m rrrr
+m w
+m w
+m rrrrrrrrr
+m dww
+# middle hall: lever L0 switches off the laser column at x=1; the shallow pits (one step down) duck under the
+# moving lasers; lever L3 adds the missing pit, then push the crate onto the far left plate (all west lasers off)
+m www
+m aaaw
+m r
+m aa
+m rrr
+m saass
+m rrrrrrr
+m ddwwa
+m rrrrrrr
+m waa
+# east along the pit row to the plate maze
+m dddddddd
+m w
+m dddddddd
+# record = phantom A: over plate B13 to the corner plate B16 and hold it (opens the tile in front of B17)
+m ddwrrrrrrrrr
+rw 12
+# record = phantom B: round through B2 to B17 and hold it, while phantom A holds B16
+m aassssddwdd
+m rrrrrrrr
+rw 19
+# hold B16 for phantom B, then over B12 and B13 to the lever L4 (row-23 laser off, raised bridge back)
+m ddw
+m rrrrrrrr
+m wasssd
+m aaaaaa
+m wwaawww

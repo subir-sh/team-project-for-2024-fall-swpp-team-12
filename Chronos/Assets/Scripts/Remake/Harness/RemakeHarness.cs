@@ -230,6 +230,7 @@ public class RemakeHarness : MonoBehaviour
                 case "swap": SwapRabbits(parts[1]); yield return Wait(0.3f); break;
                 case "palette": RemakePalette.Apply(parts[1]); Log($"palette -> {parts[1]}"); yield return Wait(0.3f); break;
                 case "wait": yield return Wait(float.Parse(parts[1])); break;
+                case "trace": trace = parts[1] == "on"; break;
                 case "explore":   // explore <maxStates> <maxDepth> [moves]
                     yield return HarnessExplore.Run(done, int.Parse(parts[1]), int.Parse(parts[2]), parts.Length > 3 ? parts[3] : "wasdr", outDir, Log);
                     break;
@@ -358,6 +359,7 @@ public class RemakeHarness : MonoBehaviour
         {
             if (filmPrefix != null && f < 40) yield return Capture($"{filmPrefix}_{f++:00}", 1600, 900, false);
             else yield return null;
+            if (trace && (f++ % 6) == 0) TraceLine();
         }
         if (filmPrefix != null) for (int k = 0; k < 6; k++) yield return Capture($"{filmPrefix}_{f++:00}", 1600, 900, false);
         yield return Wait(0.15f);
@@ -369,6 +371,15 @@ public class RemakeHarness : MonoBehaviour
             $"boxes={string.Join(" ", FindObjectsByType<Box>(FindObjectsSortMode.InstanceID).Select(b => Fmt(b.transform.position)))} " +
             $"blocks={string.Join(" ", FindObjectsByType<MovingObstacle>(FindObjectsSortMode.InstanceID).Select(b => Fmt(b.transform.position)))}" +
             (PlayerController.playerController.willDropDeath || PlayerController.playerController.willLaserKillCharacter ? " DEATH" : ""));
+    }
+
+    bool trace;
+    void TraceLine()
+    {
+        var pl = PlayerController.playerController; var ph = PhantomController.phantomController;
+        Log($"  trace t={Time.time:F2} P{pl.transform.position} drop={pl.willDropDeath} laser={pl.willLaserKillCharacter} " +
+            $"H{(ph.isPhantomExisting ? ph.transform.position.ToString() : "-")} " +
+            string.Join(" ", FindObjectsByType<Box>(FindObjectsSortMode.InstanceID).Select(b => $"{b.name}{b.transform.position} d{b.willDropDeath}")));
     }
 
     static Vector3 Flat0(Vector3 v) => new(v.x, 0f, v.z);
