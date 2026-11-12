@@ -91,7 +91,7 @@ public static class RemakeBuilder
         scenes.AddRange(RemakeArtConfig.StageLevels.Select(l => $"{R}/Scenes/{RemakeArtConfig.SceneName(l)}.unity"));
         string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../Build/ChronosRemakeWeb"));
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
-        PlayerSettings.WebGL.decompressionFallback = true;   // works on hosts that do not send Content-Encoding
+        PlayerSettings.WebGL.decompressionFallback = false;  // itch.io serves *.gz with Content-Encoding: gzip; the fallback build fails there
         PlayerSettings.WebGL.dataCaching = true;
         PlayerSettings.stripEngineCode = false;              // scene colliders were stripped on WebGL ("class 'CapsuleCollider' doesn't exist")
         PlayerSettings.defaultWebScreenWidth = 1280; PlayerSettings.defaultWebScreenHeight = 720;

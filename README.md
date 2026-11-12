@@ -57,12 +57,11 @@
 
 ## 실행하기
 
-### 빌드된 게임
+### 브라우저에서
 
-- Windows: [릴리스 페이지](https://github.com/subir-sh/team-project-for-2024-fall-swpp-team-12/releases/tag/remake-v1.0)에서 `ChronosRemake-Windows.zip`을 받아 `ChronosRemake.exe`를 실행합니다.
-- 웹: 같은 릴리스의 `ChronosRemake-WebGL.zip`이 브라우저용 빌드입니다.
+[Chronos 소개 페이지](https://subir-sh.github.io/games/chronos/)의 플레이 링크로 itch.io에서 바로 할 수 있습니다.
 
-빌드 파일은 저장소 기록에 넣지 않고 릴리스에 올립니다. 아래 명령으로 직접 만들 수도 있습니다. 진행 상황은 원작과 다른 키에 저장되므로 원작 세이브를 건드리지 않습니다.
+빌드 파일은 저장소에 넣지 않습니다. 아래 명령으로 직접 만들 수 있습니다. 진행 상황은 원작과 다른 키에 저장되므로 원작 세이브를 건드리지 않습니다.
 
 ### 에디터에서
 
