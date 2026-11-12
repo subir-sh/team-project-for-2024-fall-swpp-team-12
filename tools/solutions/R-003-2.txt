@@ -1,0 +1,17 @@
+# record = the phantom: knock the three crates off the upper floor, jump down, push them onto three plates, stand on the fourth
+m wwwwwwww
+m ds
+m wdddddd
+m ssa
+m dwa
+m waaaaaasssssd
+m wwww
+m dddd
+m ssss
+m aaaaa
+m rrrrrrr
+rw 60
+# wait upstairs until every plate is held, then walk the plate bridge to the goal
+m rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+m wwwwwwwwwww
+m dd

@@ -1,0 +1,6 @@
+# walk the long corridor; one tile short of the goal the scene takes over (the path falls away, time runs back)
+m wwwwwwwwwwwwwww
+wait 14
+# then the new shortcut opens from the start
+m wdd
+m wddwdwdwdddwww

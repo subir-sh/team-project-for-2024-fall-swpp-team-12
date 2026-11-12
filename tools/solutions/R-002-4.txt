@@ -1,0 +1,7 @@
+# record = the phantom: wait, then pull the lever (it switches the lasers on and the bridge tile in)
+m rrrrrrrr
+m ww
+rw 10
+# walk up the east side before the lasers come on, then cross the lever tile
+m wdwwwwwww
+m waw

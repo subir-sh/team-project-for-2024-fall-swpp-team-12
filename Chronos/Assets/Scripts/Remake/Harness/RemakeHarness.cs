@@ -48,7 +48,7 @@ public class RemakeHarness : MonoBehaviour
         int index = int.TryParse(Arg("-harnessIndex"), out var ix) ? ix : 3;
         if (HasArg("-harnessCampaign")) LevelManager.ForcedCampaignStart = index;   // full campaign from here, never saves
         else { LevelManager.ForcedSingleLevelIndex = index; LevelManager.ForcedSingleLevelScene = levelScene; }
-        Time.captureFramerate = 30; // deterministic 1/30 s steps, independent of batch-mode speed
+        Time.captureFramerate = 60; // deterministic 1/60 s steps (at 30 a falling crate can tunnel through a tile), independent of batch-mode speed
         var go = new GameObject("~RemakeHarness");
         DontDestroyOnLoad(go);
         go.AddComponent<RemakeHarness>();
@@ -56,7 +56,7 @@ public class RemakeHarness : MonoBehaviour
 
     void Update()
     {
-        if (Time.realtimeSinceStartup > 1500f)
+        if (Time.realtimeSinceStartup > (float.TryParse(Arg("-harnessWatchdog"), out var wd) ? wd : 1500f))
         {
             Debug.LogError("[Harness] WATCHDOG: run exceeded 1500 s wall clock");
             File.WriteAllText(Path.Combine(outDir, $"report_{scenario}.txt"), report + "\nWATCHDOG TIMEOUT\n");
@@ -194,10 +194,12 @@ public class RemakeHarness : MonoBehaviour
         Check(path != null && File.Exists(path), $"script file {path}");
         if (path == null || !File.Exists(path)) yield break;
         int rewinds = 0; string film = null;
+        var done = new List<string>();
         foreach (var raw in File.ReadAllLines(path))
         {
             var line = raw.Trim();
             if (line.Length == 0 || line.StartsWith("#")) continue;
+            if (line.StartsWith("m ") || line.StartsWith("rw ")) done.Add(line);
             var parts = line.Split(' ');
             switch (parts[0])
             {
@@ -228,6 +230,9 @@ public class RemakeHarness : MonoBehaviour
                 case "swap": SwapRabbits(parts[1]); yield return Wait(0.3f); break;
                 case "palette": RemakePalette.Apply(parts[1]); Log($"palette -> {parts[1]}"); yield return Wait(0.3f); break;
                 case "wait": yield return Wait(float.Parse(parts[1])); break;
+                case "explore":   // explore <maxStates> <maxDepth> [moves]
+                    yield return HarnessExplore.Run(done, int.Parse(parts[1]), int.Parse(parts[2]), parts.Length > 3 ? parts[3] : "wasdr", outDir, Log);
+                    break;
                 case "near":   // stand one tile short of the goal (the Event script waits for this)
                 {
                     var g = LevelManager.levelManager.CurrentGoal;
@@ -360,7 +365,10 @@ public class RemakeHarness : MonoBehaviour
         var p = PlayerController.playerController.transform.position;
         var ph = PhantomController.phantomController;
         Log($"turn {turn,2} '{cmd}' player={Fmt(p)} phantom={(ph.isPhantomExisting ? Fmt(ph.transform.position) : "-")} " +
-            $"plate={(FindObjectsByType<Button>().FirstOrDefault()?.isPressed)}");
+            $"plate={(FindObjectsByType<Button>().FirstOrDefault()?.isPressed)} " +
+            $"boxes={string.Join(" ", FindObjectsByType<Box>(FindObjectsSortMode.InstanceID).Select(b => Fmt(b.transform.position)))} " +
+            $"blocks={string.Join(" ", FindObjectsByType<MovingObstacle>(FindObjectsSortMode.InstanceID).Select(b => Fmt(b.transform.position)))}" +
+            (PlayerController.playerController.willDropDeath || PlayerController.playerController.willLaserKillCharacter ? " DEATH" : ""));
     }
 
     static Vector3 Flat0(Vector3 v) => new(v.x, 0f, v.z);

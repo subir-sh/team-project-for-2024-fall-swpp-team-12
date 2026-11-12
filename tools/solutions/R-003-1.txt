@@ -1,0 +1,17 @@
+# record = the phantom: drop to the west half through the north middle tile, push both west crates onto their plates
+m wwwwww
+m w
+m aaa
+m sssss
+m s
+m rrrrrrrrr
+rw 25
+# meanwhile: drop through the same middle tile, push both east crates onto their plates, then cross the four plate tiles
+m wwwwww
+m w
+m ddd
+m sssss
+m s
+m www
+m ddd
+m ww

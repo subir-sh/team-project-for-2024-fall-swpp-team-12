@@ -1,0 +1,11 @@
+# record (waits first): walk to the crate, then the inputs the phantom needs to climb it while it is blocked
+m rrr
+m wawwdddddd
+m wdwwd
+m rrrrrrrr
+rw 26
+# stand in front of the crate so the phantom hops onto it, then go around and push it into the pit
+m wawwddddwwdd
+m rr
+m aassddww
+m wwwww

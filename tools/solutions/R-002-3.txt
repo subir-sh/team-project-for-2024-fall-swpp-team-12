@@ -1,0 +1,19 @@
+# record = the phantom: block the crate's west side, go round to the stair and push the crate west three times
+m aaaaw
+m r
+m sddw
+m aa
+m rr
+m a
+m rrr
+rw 18
+# climb the crate from the stair while the phantom blocks it, ride it west, tap the plate, ride once more and cross the raised tile
+m aaw
+m rr
+m a
+m rrrrrr
+m ws
+m r
+m aa
+m aaa
+m ww

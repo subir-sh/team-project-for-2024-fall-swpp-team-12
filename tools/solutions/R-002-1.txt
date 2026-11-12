@@ -1,0 +1,10 @@
+# record: push the half crate onto the stair foot, climb over it to the plate and hold it
+m wawdddddd
+m rrrr
+rw 13
+# the phantom repeats it; meanwhile cross the plate-made bridge and slip past the moving block
+m rwrrwwwwr
+m wdwwr
+m wdw
+# step aside while the block swings back, then come round behind it
+m dwaa

@@ -1,0 +1,6 @@
+# phantom pushes the box north while the player rides on top of it
+m rrrrrwwwwww
+rw 11
+m wawwd
+m rrrrrr
+m a

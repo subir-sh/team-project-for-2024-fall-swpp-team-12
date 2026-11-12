@@ -615,6 +615,21 @@ public static class RemakeBuilder
             foreach (var sx in new[] { -1f, 1f }) foreach (var sz in new[] { -1f, 1f }) fit.Add(top + new Vector3(sx, 0, sz));
         }
 
+        // ---- start / goal: the original stands the rabbit on a gear with a collider (its tile is inactive);
+        //      draw that gear as a floor tile with the start or goal marker
+        foreach (var t in all.Where(t => t.name.StartsWith("gear") && t.gameObject.activeSelf && t.GetComponent<BoxCollider>() && t.GetComponent<MeshFilter>()))
+        {
+            bool isStart = t.CompareTag("StartTile"), isGoal = t.CompareTag("GoalTile");
+            var wb = WorldBounds(t.GetComponent<MeshFilter>());
+            var top = new Vector3(Mathf.Round(wb.center.x), Mathf.Round(wb.max.y * 10f) / 10f, Mathf.Round(wb.center.z));
+            var parts = new List<(string, string)> { ("Tile", "Tile"), ("Pillar", "Pillar") };
+            if (isStart) parts.Add(("StartDisc", "Start"));
+            if (isGoal) { parts.Add(("GoalDisc", "Goal")); parts.Add(("GoalRing", "Goal")); }
+            foreach (var r in t.GetComponents<Renderer>()) r.enabled = false;
+            Attach(Piece("Visual", null, top, Quaternion.identity, Vector3.one, parts.ToArray()), t);
+            foreach (var sx in new[] { -1f, 1f }) foreach (var sz in new[] { -1f, 1f }) fit.Add(top + new Vector3(sx, 0, sz));
+        }
+
         // ---- walls (Level/Structures): low visual bars; plate-controlled walls are barriers
         foreach (var t in all.Where(t => t.parent && t.parent.name == "Structures"))
         {
@@ -748,7 +763,7 @@ public static class RemakeBuilder
             Debug.Log($"[Builder] {sceneName}: hid leftover {rp} ({r.GetType().Name}) active={r.gameObject.activeInHierarchy}");
             r.enabled = false;
         }
-        foreach (var t in all.Where(t => t.name.StartsWith("gear"))) foreach (var r in t.GetComponentsInChildren<MeshRenderer>(true)) r.enabled = false;
+        foreach (var t in all.Where(t => t.name.StartsWith("gear"))) foreach (var r in t.GetComponents<MeshRenderer>()) r.enabled = false;
 
         var anchor = all.First(t => t.name == "CameraOffsetAnchor");
         // the prologue is a tall tower; frame its upper part (where the phantom and the plates are) instead of the whole drop

@@ -8,6 +8,7 @@ param(
     [string]$ScriptFile = "",
     [int]$Index = 3,
     [switch]$Campaign,
+    [int]$Watchdog = 1500,
     [string]$Unity = "C:\Program Files\Unity\Hub\Editor\6000.4.6f1\Editor\Unity.exe"
 )
 $project = (Resolve-Path "$PSScriptRoot\..\Chronos").Path
@@ -18,7 +19,7 @@ $argList = @(
     '-batchmode', '-projectPath', $project, '-executeMethod', 'HarnessRunner.Run',
     '-remakeHarness', '-harnessScene', $Scene, '-harnessLevel', $Level,
     '-harnessScenario', $Scenario, '-harnessOut', $Out, '-logFile', $log)
-$argList += @('-harnessIndex', "$Index")
+$argList += @('-harnessIndex', "$Index", '-harnessWatchdog', "$Watchdog")
 if ($Campaign) { $argList += @('-harnessCampaign') }
 if ($ScriptFile) { $argList += @('-harnessScript', (Resolve-Path $ScriptFile).Path) }
 $p = Start-Process -FilePath $Unity -PassThru -Wait -ArgumentList $argList

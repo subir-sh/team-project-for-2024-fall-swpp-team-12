@@ -1,0 +1,46 @@
+# A. to the east gap; record the walk to plate B3 (opens the x=9 bridge) and rewind: the phantom holds it while we cross east
+m ddddw
+m saaaawaaaww
+m rrrrr
+rw 16
+m rrrrrrrrrrr
+m www
+# B. east: lever L2 (opens the tile in front of lever L0)
+m dddwwwd
+# C. back to (7,9); record the walk to plate B2 (opens (5,9)) and rewind: cross west while the phantom holds it
+m sssaaaa
+m dddd
+m rrrr
+rw 8
+m rrrraa
+# D. lever L0 (the crate at (5,7) and the tile at (15,5) appear), then back to the east gap
+m aaaw
+m ddssssddddw
+# E. east again over the B3 bridge
+m saaaawaaaww
+m rrrrr
+rw 16
+m rrrrrrrrrrr
+m www
+# F. plate B2 again, this time push the crate south onto plate B0 (permanent bridge tiles at x=3 and x=7, z=13)
+m a
+m dddd
+m rrrr
+rw 8
+m rrrras
+# G. lever L4 (sunken tile), cross to the east, lever L3 (tile to plate B4), back in front of the crate at (7,15)
+m awwwwddss
+m ddddssdsddw
+m aawawwaaaaw
+# H. record the walk to plate B4 and rewind: push the crate onto the B4 tile, climb it into the pyramid
+m sddddssdssaa
+m rrrrr
+rw 17
+m rrrrrrrrrrr
+m wwww
+# I. record the walk to plate B1 and rewind: cross the B1 tiles to the goal
+m wwaa
+m rrrrr
+rw 9
+m aaar
+m wwwww

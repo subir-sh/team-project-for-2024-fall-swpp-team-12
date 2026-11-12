@@ -1,0 +1,13 @@
+# record = the phantom: wait, then walk round to the long plate (5,5) and hold it while the bridge is crossed
+m rrrr
+m wwwwwdds
+m rrrrrrrrrrrrrrrrrrrrr
+rw 33
+# hop the first crate into the corridor and push it through the long plate onto the laser-blocker plate
+m wwwwwdd
+m wss
+# second crate: round to the east end, push it west, then north onto the bridge plate
+m dssddw
+m asaw
+# back round to the column and up the plate bridge while the phantom holds the long plate
+m saaawwwdwwwww
