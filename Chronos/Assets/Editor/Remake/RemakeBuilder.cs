@@ -100,7 +100,19 @@ public static class RemakeBuilder
             scenes = scenes.ToArray(), locationPathName = dir, target = BuildTarget.WebGL, options = BuildOptions.None
         });
         Debug.Log($"[Builder] webgl {report.summary.result} {dir} size={report.summary.totalSize / (1024 * 1024)}MB errors={report.summary.totalErrors}");
-        if (report.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded) EditorApplication.Exit(1);
+        if (report.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded)
+        {
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        // Keep the embedding size, but avoid rendering the entire scene at HiDPI density.
+        string indexPath = Path.Combine(dir, "index.html");
+        string html = File.ReadAllText(indexPath);
+        const string loadPlayer = "createUnityInstance(canvas, config,";
+        if (!html.Contains(loadPlayer)) throw new InvalidOperationException("WebGL template no longer uses the expected loader.");
+        File.WriteAllText(indexPath, html.Replace(loadPlayer,
+            "config.devicePixelRatio = 1;\n        " + loadPlayer));
     }
 
     static string Arg(string n) { var a = Environment.GetCommandLineArgs(); for (int i = 0; i < a.Length - 1; i++) if (a[i] == n) return a[i + 1]; return null; }
@@ -469,8 +481,13 @@ public static class RemakeBuilder
         UnityEngine.Object.DestroyImmediate(rm.GetComponent<RewindToggleEffect>());
         UnityEngine.Object.DestroyImmediate(Find("ScaleCanvas"));
         UnityEngine.Object.DestroyImmediate(Find("ConstantCanvas"));
-        var mono = Find("MonologueText")?.GetComponent<TextMeshProUGUI>();
-        if (mono && font) { mono.font = font; EditorUtility.SetDirty(mono); }
+        foreach (var root in scene.GetRootGameObjects())
+        foreach (var label in root.GetComponentsInChildren<TextMeshProUGUI>(true))
+        {
+            label.font = font;
+            label.fontSharedMaterial = font.material;
+            EditorUtility.SetDirty(label);
+        }
 
         MountRabbit(Find("Player"), rabbit, false);
         MountRabbit(Find("Phantom"), rabbit, true);

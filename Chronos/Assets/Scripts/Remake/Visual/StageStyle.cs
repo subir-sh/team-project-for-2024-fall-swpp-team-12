@@ -26,6 +26,15 @@ public class StageStyle : MonoBehaviour
 
     public static string Current { get; private set; }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+    void Awake()
+    {
+        QualitySettings.shadows = ShadowQuality.HardOnly;
+        QualitySettings.shadowCascades = 0;
+        QualitySettings.shadowResolution = ShadowResolution.Low;
+    }
+#endif
+
     void OnEnable() => SceneManager.sceneLoaded += OnLoaded;
     void OnDisable() => SceneManager.sceneLoaded -= OnLoaded;
 

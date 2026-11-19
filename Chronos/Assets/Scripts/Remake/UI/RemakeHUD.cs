@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Compact, icon-first HUD. No labels, no metadata text: only what changes a decision.
-//  - Timeline strip (top centre): every recorded turn as an arrow (rotated to match the screen) or a
+//  - Timeline strip (top centre): every recorded turn as a cardinal arrow or a
 //    wait dot; a caret marks "now". While rewinding, the turns your phantom will replay turn cyan and
 //    the Q / E / SPACE keycaps appear.
 //  - In the world: a small marker over you, and the phantom's remaining turns over the phantom.
@@ -110,17 +110,17 @@ public class RemakeHUD : MonoBehaviour
 
     void SetIcon(Image img, string cmd)
     {
-        Vector3 d = cmd switch { "w" => Vector3.forward, "s" => Vector3.back, "a" => Vector3.left, "d" => Vector3.right, _ => Vector3.zero };
-        if (d == Vector3.zero) { img.sprite = waitDot; img.rectTransform.localRotation = Quaternion.identity; return; }
-        img.sprite = arrow;
-        var cam = Camera.main; float ang = 0;
-        if (cam)
+        // The sprite points right at zero degrees. Use the input axes, independent of the camera.
+        float? angle = cmd switch
         {
-            Vector3 c = PlayerController.playerController.transform.position;
-            Vector3 a = cam.WorldToScreenPoint(c), b = cam.WorldToScreenPoint(c + d);
-            ang = Mathf.Atan2(b.y - a.y, b.x - a.x) * Mathf.Rad2Deg;
-        }
-        img.rectTransform.localRotation = Quaternion.Euler(0, 0, ang);
+            "w" => 90f,
+            "s" => -90f,
+            "a" => 180f,
+            "d" => 0f,
+            _ => null
+        };
+        img.sprite = angle.HasValue ? arrow : waitDot;
+        img.rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle.GetValueOrDefault());
     }
 
     // ------------------------------------------------------------------ construction
